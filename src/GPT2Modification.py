@@ -1,11 +1,13 @@
+import os
 from GPT2 import GPTModel
 import torch.nn as nn
 import torch
-from config import  GPT_CONFIG_124M
+from config import  GPT_CONFIG_124M , BASE_MODELS_DIR , MODEL_DIR
 
 class ClassificationModel(nn.Module):
-    def __init__(self ,model_path:str,config:dict=GPT_CONFIG_124M, out_units:int =1 , num_block2train:int = 2):
+    def __init__(self,config:dict=GPT_CONFIG_124M, out_units:int =1 , num_block2train:int = 2):
         super().__init__()
+        model_path = os.path.join(BASE_MODELS_DIR , MODEL_DIR)
         self.model = GPTModel(config)
         weights = torch.load(model_path, weights_only=True)
         self.model.load_state_dict(weights)
