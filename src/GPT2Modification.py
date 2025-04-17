@@ -5,13 +5,13 @@ import torch
 from config import  GPT_CONFIG_124M , BASE_MODELS_DIR , MODEL_DIR
 
 class ClassificationModel(nn.Module):
-    def __init__(self,config:dict=GPT_CONFIG_124M, out_units:int =1 , num_block2train:int = 2):
+    def __init__(self,config:dict=GPT_CONFIG_124M, num_class:int =2 , num_block2train:int = 2):
         super().__init__()
         model_path = os.path.join(BASE_MODELS_DIR , MODEL_DIR)
         self.model = GPTModel(config)
         weights = torch.load(model_path, weights_only=True)
         self.model.load_state_dict(weights)
-        self.out_units=out_units
+        self.num_class=num_class
         self.num_block2train = num_block2train
         self._replace_heads()
         self._freez_except()
@@ -19,7 +19,7 @@ class ClassificationModel(nn.Module):
         return self.model(x)
 
     def _replace_heads(self):
-        self.model.out_head = nn.Linear(GPT_CONFIG_124M['emb_dim'] , self.out_units)
+        self.model.out_head = nn.Linear(GPT_CONFIG_124M['emb_dim'] , self.num_class)
 
     def _freez_except(self):
         ## Freeze all the model weights
