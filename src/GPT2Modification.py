@@ -1,6 +1,7 @@
-from GPT2 import GPTModel , GPT_CONFIG_124M
+from GPT2 import GPTModel
 import torch.nn as nn
 import torch
+from config import  GPT_CONFIG_124M
 
 class ClassificationModel(nn.Module):
     def __init__(self ,model_path:str,config:dict=GPT_CONFIG_124M, out_units:int =1 , num_block2train:int = 2):
