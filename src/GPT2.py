@@ -1,9 +1,6 @@
 import torch
 from torch import nn
 
-
-
-
 class MultiHeadAttention(nn.Module):
     def __init__(self, d_in, d_out, context_length, dropout, num_heads, qkv_bias=False):
         super().__init__()

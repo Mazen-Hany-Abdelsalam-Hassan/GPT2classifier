@@ -52,7 +52,7 @@ def CreateDataloader(csv_dir, batch_size = 16,
 
 
 
-def split_data(data: pd.DataFrame, train_split: int = .8, val_split: int = .10 , seed = SEED):
+def split_data(data: pd.DataFrame, train_split: int = .8, val_split: int = .10 , seed = SEED,label_dict = LABEL_DICTIONARY):
     os.makedirs(PARENT_DIR, exist_ok=True)
     os.makedirs(DATA_PATH, exist_ok=True)
     data = data.sample(frac=1, random_state=seed).reset_index(drop=True)
@@ -62,9 +62,9 @@ def split_data(data: pd.DataFrame, train_split: int = .8, val_split: int = .10 ,
     train_df = data[:train_size]
     val_df = data[train_size: val_size]
     test_df = data[val_size:]
-    train_df.iloc[::, 1] = train_df.iloc[::, 1].map(LABEL_DICTIONARY)
-    val_df.iloc[::, 1] = val_df.iloc[::, 1].map(LABEL_DICTIONARY)
-    test_df.iloc[::, 1] = test_df.iloc[::, 1].map(LABEL_DICTIONARY)
+    train_df.loc[::, 'sentiment'] = train_df.loc[::, 'sentiment'].map(LABEL_DICTIONARY)
+    val_df.loc[::, 'sentiment'] = val_df.loc[::, 'sentiment'].map(LABEL_DICTIONARY)
+    test_df.loc[::, 'sentiment'] = test_df.loc[::, 'sentiment'].map(LABEL_DICTIONARY)
     train_df.to_csv(train_df_dir, index=False)
     val_df.to_csv(val_df_dir, index=False)
     test_df.to_csv(test_df_dir, index=False)

@@ -2,14 +2,18 @@ import os
 from GPT2 import GPTModel
 import torch.nn as nn
 import torch
-from config import  GPT_CONFIG_124M , BASE_MODELS_DIR , MODEL_DIR
+from config import BASE_CONFIG, MODEL_CONFIGS
+from model_download import download
 
 class ClassificationModel(nn.Module):
-    def __init__(self,config:dict=GPT_CONFIG_124M, num_class:int =2 , num_block2train:int = 2):
+    def __init__(self,Model_variant:str='S', num_class:int =2 , num_block2train:int = 2):
         super().__init__()
-        model_path = os.path.join(BASE_MODELS_DIR , MODEL_DIR)
-        self.model = GPTModel(config)
-        weights = torch.load(model_path, weights_only=True)
+        self._Model_variant = Model_variant
+        model_dir = download(Model_variant)
+        weights = torch.load(model_dir, weights_only=True)
+
+        self.config = BASE_CONFIG.update(MODEL_CONFIGS[Model_variant])
+        self.model = GPTModel(self.config)
         self.model.load_state_dict(weights)
         self.num_class=num_class
         self.num_block2train = num_block2train
@@ -18,8 +22,10 @@ class ClassificationModel(nn.Module):
     def forward(self, x):
         return self.model(x)
 
+    def model_var(self):
+        return  self._Model_variant
     def _replace_heads(self):
-        self.model.out_head = nn.Linear(GPT_CONFIG_124M['emb_dim'] , self.num_class)
+        self.model.out_head = nn.Linear(self.config['emb_dim'] , self.num_class)
 
     def _freez_except(self):
         ## Freeze all the model weights
