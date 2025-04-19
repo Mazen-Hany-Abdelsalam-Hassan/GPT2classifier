@@ -11,8 +11,8 @@ class ClassificationModel(nn.Module):
         self._Model_variant = Model_variant
         model_dir = download(Model_variant)
         weights = torch.load(model_dir, weights_only=True)
-
-        self.config = BASE_CONFIG.update(MODEL_CONFIGS[Model_variant])
+        self.config = BASE_CONFIG
+        self.config.update(MODEL_CONFIGS[Model_variant])
         self.model = GPTModel(self.config)
         self.model.load_state_dict(weights)
         self.num_class=num_class
