@@ -2,7 +2,7 @@ import json
 
 import os
 from config import *
-
+import pandas as pd
 
 def create_json(
         data_dir:str="IMDB.csv",
@@ -18,7 +18,9 @@ def create_json(
         weight_decay:float= .1,
         num_epoochs:int = 2
 ):
-    number_of_class = len(label_dictionary)
+    df = pd.read_csv(data_dir)
+    number_of_class = df.loc[::, column_name[1]].unique().shape[0]
+
     os.makedirs(CONFIG_DICT_DIR,exist_ok=True)
     config_dict = {
         "data_dir":data_dir,
