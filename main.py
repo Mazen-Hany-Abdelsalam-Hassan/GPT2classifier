@@ -28,7 +28,7 @@ def main(json_name):
     weight_decay = data_config['weight_decay']
     df = pd.read_csv(csv_dir)
     split_data(data = df , label_dict=label_dictionary,
-               train_split=train_split,val_split=val_split)
+               train_split=train_split,val_split=val_split,column_name=column_name)
     train_loader = CreateDataloader(csv_dir = train_df_dir,
                                     batch_size=batch_size,
                                     column_name=column_name,
