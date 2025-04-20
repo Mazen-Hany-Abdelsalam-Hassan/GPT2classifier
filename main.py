@@ -18,7 +18,7 @@ def main(json_name):
     label_dictionary= data_config["label_dictionary"]
     column_name = data_config['column_name']
     Model_variant = data_config['Model_variant']
-    batch_size = data_config['batch_size']
+    batch_size = data_config['Batch_size']
     max_seq_length = data_config['max_seq_length']
     number_of_class = data_config['number_of_class']
     train_split = data_config['train_split']
