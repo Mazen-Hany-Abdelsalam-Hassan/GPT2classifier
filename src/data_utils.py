@@ -16,7 +16,7 @@ def dynamic_batch_loader(batch: list, padding_token=PADDINGTOKEN):
     return torch.tensor(X, dtype=torch.long), torch.tensor(Y)
 
 
-def sort_df(data:pd.DataFrame,column_name:list=COLUMN_NAME_IMBD ,tokenizer = TOKENIZER):
+def sort_df(data:pd.DataFrame, column_name:list=COLUMN_NAME_IMDB, tokenizer = TOKENIZER):
     data.loc[::,'encoded_text'] = data.loc[::,column_name[0]].apply(tokenizer.encode)
     data.loc[::,'length'] = data.loc[::,'encoded_text'].apply(len)
     sorted_df = data.sort_values("length")
@@ -27,7 +27,7 @@ def sort_df(data:pd.DataFrame,column_name:list=COLUMN_NAME_IMBD ,tokenizer = TOK
 class ClassifierDataset(Dataset):
     def __init__(self, csv_dir,
                  allowed_seq_length = ALLOWED_SEQ_LENGTH,
-                 column_name:list = COLUMN_NAME_IMBD,
+                 column_name:list = COLUMN_NAME_IMDB,
                  tokenizer = TOKENIZER):
         super().__init__()
         self.data = pd.read_csv(csv_dir)
@@ -45,10 +45,10 @@ class ClassifierDataset(Dataset):
         return len(self.X)
 
 def CreateDataloader(csv_dir, batch_size = 16,
-                      allowed_seq_length = ALLOWED_SEQ_LENGTH,
-                    column_name:list = COLUMN_NAME_IMBD,
-                      tokenizer = TOKENIZER,
-                      collate_fn=dynamic_batch_loader):
+                     allowed_seq_length = ALLOWED_SEQ_LENGTH,
+                     column_name:list = COLUMN_NAME_IMDB,
+                     tokenizer = TOKENIZER,
+                     collate_fn=dynamic_batch_loader):
     dataset = ClassifierDataset(csv_dir=csv_dir , allowed_seq_length=allowed_seq_length,
                                 tokenizer=tokenizer,column_name=column_name)
     dataloader = DataLoader(dataset , batch_size=batch_size , collate_fn=collate_fn,shuffle=False)
@@ -56,9 +56,9 @@ def CreateDataloader(csv_dir, batch_size = 16,
 
 
 
-def split_data(data: pd.DataFrame, label_dict = LABEL_DICTIONARY_IMBD,
-               column_name = COLUMN_NAME_IMBD,
-               train_split: int = .8, val_split: int = .10, seed = SEED):
+def split_data(data: pd.DataFrame, label_dict = LABEL_DICTIONARY_IMDB,
+               column_name = COLUMN_NAME_IMDB,
+               train_split: float = .8, val_split: float = .10, seed = SEED):
     os.makedirs(PARENT_DIR, exist_ok=True)
     os.makedirs(DATA_PATH, exist_ok=True)
     data = data.sample(frac=1, random_state=seed).reset_index(drop=True)
