@@ -1,4 +1,3 @@
-import os
 from GPT2 import GPTModel
 import torch.nn as nn
 import torch

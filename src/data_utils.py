@@ -16,8 +16,8 @@ def dynamic_batch_loader(batch: list, padding_token=PADDINGTOKEN):
     return torch.tensor(X, dtype=torch.long), torch.tensor(Y)
 
 
-def sort_df(data:pd.DataFrame,tokenizer = TOKENIZER):
-    data.loc[::,'encoded_text'] = data.loc[::,'review'].apply(tokenizer.encode)
+def sort_df(data:pd.DataFrame,column_name:list=COLUMN_NAME_IMBD ,tokenizer = TOKENIZER):
+    data.loc[::,'encoded_text'] = data.loc[::,column_name[0]].apply(tokenizer.encode)
     data.loc[::,'length'] = data.loc[::,'encoded_text'].apply(len)
     sorted_df = data.sort_values("length")
     return sorted_df.reset_index( drop=True)
@@ -25,12 +25,15 @@ def sort_df(data:pd.DataFrame,tokenizer = TOKENIZER):
 
 
 class ClassifierDataset(Dataset):
-    def __init__(self, csv_dir, allowed_seq_length = ALLOWED_SEQ_LENGTH,tokenizer = TOKENIZER):
+    def __init__(self, csv_dir,
+                 allowed_seq_length = ALLOWED_SEQ_LENGTH,
+                 column_name:list = COLUMN_NAME_IMBD,
+                 tokenizer = TOKENIZER):
         super().__init__()
         self.data = pd.read_csv(csv_dir)
-        self.data = sort_df(self.data , tokenizer = tokenizer)
+        self.data = sort_df(self.data ,column_name=column_name, tokenizer = tokenizer)
         self.X = self.data.loc[::, 'encoded_text']
-        self.Y = self.data.loc[::, 'sentiment']
+        self.Y = self.data.loc[::, column_name[1]]
         self.allowed_seq_length = allowed_seq_length
     def __getitem__(self, idx):
         x = self.X[idx]
@@ -43,16 +46,19 @@ class ClassifierDataset(Dataset):
 
 def CreateDataloader(csv_dir, batch_size = 16,
                       allowed_seq_length = ALLOWED_SEQ_LENGTH,
+                    column_name:list = COLUMN_NAME_IMBD,
                       tokenizer = TOKENIZER,
                       collate_fn=dynamic_batch_loader):
     dataset = ClassifierDataset(csv_dir=csv_dir , allowed_seq_length=allowed_seq_length,
-                                tokenizer=tokenizer)
-    dataloader = DataLoader(dataset , batch_size=batch_size , collate_fn=collate_fn)
+                                tokenizer=tokenizer,column_name=column_name)
+    dataloader = DataLoader(dataset , batch_size=batch_size , collate_fn=collate_fn,shuffle=False)
     return  dataloader
 
 
 
-def split_data(data: pd.DataFrame, train_split: int = .8, val_split: int = .10 , seed = SEED,label_dict = LABEL_DICTIONARY):
+def split_data(data: pd.DataFrame, label_dict = LABEL_DICTIONARY_IMBD,
+               column_name = COLUMN_NAME_IMBD,
+               train_split: int = .8, val_split: int = .10, seed = SEED):
     os.makedirs(PARENT_DIR, exist_ok=True)
     os.makedirs(DATA_PATH, exist_ok=True)
     data = data.sample(frac=1, random_state=seed).reset_index(drop=True)
@@ -62,9 +68,9 @@ def split_data(data: pd.DataFrame, train_split: int = .8, val_split: int = .10 ,
     train_df = data[:train_size]
     val_df = data[train_size: val_size]
     test_df = data[val_size:]
-    train_df.loc[::, 'sentiment'] = train_df.loc[::, 'sentiment'].map(LABEL_DICTIONARY)
-    val_df.loc[::, 'sentiment'] = val_df.loc[::, 'sentiment'].map(LABEL_DICTIONARY)
-    test_df.loc[::, 'sentiment'] = test_df.loc[::, 'sentiment'].map(LABEL_DICTIONARY)
+    train_df.loc[::, column_name[1]] = train_df.loc[::, column_name[1]].apply(lambda x : x if  label_dict is None else label_dict[x])
+    val_df.loc[::, column_name[1]] = val_df.loc[::, column_name[1]].apply(lambda x : x if  label_dict is None else label_dict[x])
+    test_df.loc[::, column_name[1]] = test_df.loc[::, column_name[1]].apply(lambda x : x if  label_dict is None else label_dict[x])
     train_df.to_csv(train_df_dir, index=False)
     val_df.to_csv(val_df_dir, index=False)
     test_df.to_csv(test_df_dir, index=False)
