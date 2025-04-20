@@ -6,9 +6,9 @@ import pandas as pd
 import torch
 
 sys.path.append('src')
-from src.config import  (split_data, CreateDataloader ,train_df_dir,
+
+from src import (split_data , CreateDataloader,ClassificationModel,train_classifier,evaluate_classifier,train_df_dir,
                   test_df_dir ,val_df_dir,CONFIG_DICT_DIR,DEVICE)
-from src import split_data , CreateDataloader,ClassificationModel,train_classifier,evaluate_classifier
 
 def main(json_name):
     path = os.path.join(CONFIG_DICT_DIR , json_name)
