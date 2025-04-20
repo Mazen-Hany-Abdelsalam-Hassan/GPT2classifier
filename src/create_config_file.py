@@ -15,7 +15,8 @@ def create_json(
         train_split:float = .8,
         val_split:float= .1,
         lr:float= 5e-5,
-        weight_decay:float= .1
+        weight_decay:float= .1,
+        num_epoochs:int = 2
 ):
     number_of_class = len(label_dictionary)
     os.makedirs(CONFIG_DICT_DIR,exist_ok=True)
@@ -30,7 +31,8 @@ def create_json(
         "train_split": train_split,
         "val_split":val_split,
         "lr":lr,
-        "weight_decay":weight_decay }
+        "weight_decay":weight_decay ,
+        "num_epochs":num_epoochs}
     save_dir = os.path.join(CONFIG_DICT_DIR,config_name+'.json')
     with open(save_dir, "w") as json_file:
         json.dump(config_dict, json_file, indent=4)
