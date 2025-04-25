@@ -20,6 +20,7 @@ MODEL_CONFIGS = {
     "L": {"emb_dim": 1280, "n_layers": 36, "n_heads": 20},
     "XL": {"emb_dim": 1600, "n_layers": 48, "n_heads": 25},
 }
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ALLOWED_SEQ_LENGTH = 1000
 SEED = 123
