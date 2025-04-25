@@ -16,7 +16,11 @@ def create_json(
         val_split:float= .1,
         lr:float= 5e-5,
         weight_decay:float= .1,
-        num_epoochs:int = 2
+        num_epoochs:int = 2,
+        LoRA:bool= True,
+        num_layer2train = 2,
+        Rank:int= 16,
+        alpha:float=1.5
 ):
     df = pd.read_csv(data_dir)
     number_of_class = df.loc[::, column_name[1]].unique().shape[0]
@@ -34,7 +38,17 @@ def create_json(
         "val_split":val_split,
         "lr":lr,
         "weight_decay":weight_decay ,
-        "num_epochs":num_epoochs}
+        "num_epochs":num_epoochs,
+        "LoRA":LoRA
+    }
+    if LoRA :
+        lora_dict = {"Rank" : Rank ,
+                     "alpha":alpha}
+        config_dict.update(lora_dict)
+    else :
+        default_dict = {"num_layer2train":num_layer2train}
+        config_dict.update(default_dict)
+
     save_dir = os.path.join(CONFIG_DICT_DIR,config_name+'.json')
     with open(save_dir, "w") as json_file:
         json.dump(config_dict, json_file, indent=4)
