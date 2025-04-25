@@ -3,6 +3,12 @@ import torch.nn  as nn
 
 class LinearWithLoRa(nn.Module):
     def __init__(self, linear, rank=16, alpha=1.5):
+        """
+        This is the layer which will be tuned in lora
+        :param linear:  Original Linear layer since we will replace all linear layer with this layer
+        :param rank:  HyperParameters related to the lora
+        :param alpha: HyperParameters related to the lora
+        """
         super().__init__()
 
         self.linear = linear
@@ -25,6 +31,13 @@ class LoRALayer(nn.Module):
 
 
 def ReplaceLinear(model:nn.Module , rank = 16 , alpha = 1.5):
+    """
+        Replace all the linear layer with LoRA layer
+    :param model: module to replace all linear layer with LinearWithLoRa
+    :param rank: HyperParameters related to the lora
+    :param alpha: HyperParameters related to the lora
+    :return:
+    """
     for name,module in model.named_children():
         if isinstance(module , nn.Linear):
             setattr(model ,name , LinearWithLoRa(module ,rank = rank , alpha=alpha))

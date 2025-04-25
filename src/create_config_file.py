@@ -20,7 +20,8 @@ def create_json(
         LoRA:bool= True,
         num_layer2train = 2,
         Rank:int= 16,
-        alpha:float=1.5
+        alpha:float=1.5,
+        Dropout: float =0.0
 ):
     df = pd.read_csv(data_dir)
     number_of_class = df.loc[::, column_name[1]].unique().shape[0]
@@ -39,7 +40,8 @@ def create_json(
         "lr":lr,
         "weight_decay":weight_decay ,
         "num_epochs":num_epoochs,
-        "LoRA":LoRA
+        "LoRA":LoRA,
+        "Dropout":Dropout
     }
     if LoRA :
         lora_dict = {"Rank" : Rank ,

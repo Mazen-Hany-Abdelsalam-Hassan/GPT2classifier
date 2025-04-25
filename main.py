@@ -1,5 +1,4 @@
 import json
-#import argparse
 import os.path
 import sys
 import pandas as pd
@@ -29,6 +28,7 @@ def main(json_name):
     lr = data_config['lr']
     weight_decay = data_config['weight_decay']
     LoRA = data_config["LoRA"]
+    Dropout = data_config["Dropout"]
     if LoRA:
         Rank  = data_config["Rank"]
         alpha = data_config["alpha"]
@@ -56,9 +56,12 @@ def main(json_name):
 
 
     if LoRA :
-        model = LoRA_Classification_Model(Model_variant=Model_variant , num_class=number_of_class , rank=Rank , alpha=alpha)
+        model = LoRA_Classification_Model(Model_variant=Model_variant ,
+                                          num_class=number_of_class ,
+                                          rank=Rank , alpha=alpha , Dropout=Dropout)
     else:
-        model = ClassificationModel(Model_variant=Model_variant ,num_class=number_of_class,num_block2train=num_layer2train)
+        model = ClassificationModel(Model_variant=Model_variant ,num_class=number_of_class,
+                                    num_block2train=num_layer2train,Dropout=Dropout)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     train_classifier(model, train_loader, val_loader, optimizer, num_epochs,DEVICE)
     torch.save(model.state_dict(), "CLASSIFICATION/model.pth")
