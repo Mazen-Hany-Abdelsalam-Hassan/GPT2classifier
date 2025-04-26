@@ -1,5 +1,5 @@
 import torch
-from torch.cuda.amp import autocast, GradScaler
+from torch.amp import autocast, GradScaler
 
 
 def calc_loss_batch(predictions, targets):
@@ -38,12 +38,15 @@ def train_classifier(model, train_dataloader, validation_dataloader,
         'val_acc': []
     }
 
-    # Initialize gradient scaler for mixed precision training
-    scaler = GradScaler() if use_mixed_precision and device == torch.device("cuda") else None
+    # Get device type for autocast
+    device_type = 'cuda' if device.type == 'cuda' else 'cpu'
 
-    # Check if mixed precision is available
-    if use_mixed_precision and device != torch.device("cuda"):
-        print("Mixed precision training requires CUDA. Falling back to full precision.")
+    # Initialize gradient scaler for mixed precision training
+    scaler = GradScaler(device_type) if use_mixed_precision else None
+
+    # Check if mixed precision is available/beneficial
+    if use_mixed_precision and device_type != 'cuda':
+        print("Mixed precision training is most beneficial with CUDA. Falling back to full precision.")
         use_mixed_precision = False
 
     # Move model to device
@@ -75,7 +78,7 @@ def train_classifier(model, train_dataloader, validation_dataloader,
 
             if use_mixed_precision:
                 # Use autocast for mixed precision forward pass
-                with autocast():
+                with autocast(device_type):
                     predictions = model(x)[:, -1, :]
                     loss, num_samples = calc_loss_batch(predictions, y)
 
@@ -190,6 +193,9 @@ def evaluate_classifier(model, dataloader, device, use_mixed_precision=False):
     model.eval()
     model = model.to(device)
 
+    # Get device type for autocast
+    device_type = 'cuda' if device.type == 'cuda' else 'cpu'
+
     # Initialize counters
     total_loss = 0
     total_samples = 0
@@ -205,8 +211,8 @@ def evaluate_classifier(model, dataloader, device, use_mixed_precision=False):
             y = y.to(device)
 
             # Forward pass with optional mixed precision
-            if use_mixed_precision and device == torch.device("cuda"):
-                with autocast():
+            if use_mixed_precision and device_type == 'cuda':
+                with autocast(device_type):
                     predictions = model(x)[:, -1, :]
                     loss_result = calc_loss_batch(predictions, y)
             else:
