@@ -36,6 +36,8 @@ def train_classifier(model, train_dataloader, validation_dataloader,
     model = model.to(device)
 
     for epoch in range(num_epochs):
+        if device ==  torch.device("cuda" ):
+            torch.cuda.empty_cache()
         print(f"\nEpoch {epoch + 1}/{num_epochs}")
 
         # Training phase
