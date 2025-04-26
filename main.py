@@ -59,9 +59,13 @@ def main(json_name):
         model = LoRA_Classification_Model(Model_variant=Model_variant ,
                                           num_class=number_of_class ,
                                           rank=Rank , alpha=alpha , Dropout=Dropout)
+        print("ALL of US LOVE LoRA")
+        print(model)
     else:
         model = ClassificationModel(Model_variant=Model_variant ,num_class=number_of_class,
                                     num_block2train=num_layer2train,Dropout=Dropout)
+        print("ALL of US HATE LoRA")
+        print(model)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     train_classifier(model, train_loader, val_loader, optimizer, num_epochs,DEVICE)
     torch.save(model.state_dict(), "CLASSIFICATION/model.pth")
