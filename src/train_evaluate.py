@@ -1,4 +1,6 @@
 import torch
+from torch.cuda.amp import autocast, GradScaler
+
 
 def calc_loss_batch(predictions, targets):
     # Use a PyTorch loss function
@@ -7,8 +9,11 @@ def calc_loss_batch(predictions, targets):
     loss = criterion(predictions, targets)
     # Return the loss tensor and number of samples
     return loss, targets.size(0)
+
+
 def train_classifier(model, train_dataloader, validation_dataloader,
-                     optimizer, num_epochs, device, log_interval=100, scheduler=None):
+                     optimizer, num_epochs, device, log_interval=100, scheduler=None,
+                     use_mixed_precision=True):
     """
     Train a classifier model with regular batch interval logging.
 
@@ -21,6 +26,7 @@ def train_classifier(model, train_dataloader, validation_dataloader,
         device: Device to use for training ('cuda' or 'cpu')
         log_interval: Number of batches between logging updates
         scheduler: Optional learning rate scheduler
+        use_mixed_precision: Whether to use mixed precision training (FP16)
 
     Returns:
         dict: Training history including losses and accuracies
@@ -32,11 +38,19 @@ def train_classifier(model, train_dataloader, validation_dataloader,
         'val_acc': []
     }
 
+    # Initialize gradient scaler for mixed precision training
+    scaler = GradScaler() if use_mixed_precision and device == torch.device("cuda") else None
+
+    # Check if mixed precision is available
+    if use_mixed_precision and device != torch.device("cuda"):
+        print("Mixed precision training requires CUDA. Falling back to full precision.")
+        use_mixed_precision = False
+
     # Move model to device
     model = model.to(device)
 
     for epoch in range(num_epochs):
-        if device ==  torch.device("cuda" ):
+        if device == torch.device("cuda"):
             torch.cuda.empty_cache()
         print(f"\nEpoch {epoch + 1}/{num_epochs}")
 
@@ -56,14 +70,25 @@ def train_classifier(model, train_dataloader, validation_dataloader,
             x = x.to(device)
             y = y.to(device)
 
-            # Forward pass
+            # Forward pass with mixed precision
             optimizer.zero_grad()
-            predictions = model(x)[::, -1, ::]
-            loss, num_samples = calc_loss_batch(predictions, y)
 
-            # Backward pass
-            loss.backward()
-            optimizer.step()
+            if use_mixed_precision:
+                # Use autocast for mixed precision forward pass
+                with autocast():
+                    predictions = model(x)[:, -1, :]
+                    loss, num_samples = calc_loss_batch(predictions, y)
+
+                # Backward pass with scaled gradients
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                # Standard full precision forward and backward pass
+                predictions = model(x)[:, -1, :]
+                loss, num_samples = calc_loss_batch(predictions, y)
+                loss.backward()
+                optimizer.step()
 
             # Calculate accuracy
             _, predicted = torch.max(predictions.data, 1)
@@ -112,8 +137,8 @@ def train_classifier(model, train_dataloader, validation_dataloader,
                 x = x.to(device)
                 y = y.to(device)
 
-                # Forward pass
-                predictions = model(x)[::, -1, ::]
+                # Forward pass (no need for autocast in eval as we want consistent results)
+                predictions = model(x)[:, -1, :]
                 loss, num_samples = calc_loss_batch(predictions, y)
 
                 # Calculate accuracy
@@ -142,13 +167,13 @@ def train_classifier(model, train_dataloader, validation_dataloader,
         print(f"\nEpoch {epoch + 1} Summary:")
         print(f"Train loss: {epoch_train_loss:.4f}, Train accuracy: {epoch_train_accuracy:.2f}%")
         print(f"Val loss: {epoch_val_loss:.4f}, Val accuracy: {epoch_val_accuracy:.2f}%")
+        if use_mixed_precision:
+            print("Training with mixed precision (FP16/FP32)")
 
     return history
 
 
-
-
-def evaluate_classifier(model, dataloader, device):
+def evaluate_classifier(model, dataloader, device, use_mixed_precision=False):
     """
     Evaluate a classifier model on a dataset.
 
@@ -156,12 +181,11 @@ def evaluate_classifier(model, dataloader, device):
         model: PyTorch model
         dataloader: DataLoader for evaluation data
         device: Device to use for evaluation ('cuda' or 'cpu')
+        use_mixed_precision: Whether to use mixed precision for evaluation
 
     Returns:
         dict: Evaluation metrics including loss and accuracy
     """
-    import torch
-
     # Make sure model is in evaluation mode
     model.eval()
     model = model.to(device)
@@ -180,11 +204,14 @@ def evaluate_classifier(model, dataloader, device):
             x = x.to(device)
             y = y.to(device)
 
-            # Forward pass
-            predictions = model(x)[::,-1,::]
-
-            # Get loss
-            loss_result = calc_loss_batch(predictions, y)
+            # Forward pass with optional mixed precision
+            if use_mixed_precision and device == torch.device("cuda"):
+                with autocast():
+                    predictions = model(x)[:, -1, :]
+                    loss_result = calc_loss_batch(predictions, y)
+            else:
+                predictions = model(x)[:, -1, :]
+                loss_result = calc_loss_batch(predictions, y)
 
             # Handle different return types from calc_loss_batch
             if isinstance(loss_result, tuple):
