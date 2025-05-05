@@ -67,6 +67,16 @@ def main(json_name):
         print("ALL of US HATE LoRA")
         print(type(model))
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
-    train_classifier_ddp(model, train_loader, val_loader, optimizer, num_epochs,DEVICE , local_rank= 0 , world_size = 2)
+    train_classifier_ddp(
+        local_rank=0,
+        world_size=2,
+        model=model,
+        train_dataloader=train_loader,
+        val_dataloader=val_loader,
+        optimizer=optimizer,
+        num_epochs=num_epochs,
+        device=DEVICE
+    )
+
     #torch.save(model.module.state_dict(), f'final.pt')
     return  model
