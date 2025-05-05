@@ -62,7 +62,7 @@ def main(json_name):
         model=model,
         train_dataset=train_dataset,
         val_dataset=val_dataset,
-        optimizer=optimizer,
+        optimizer_fn=optimizer,
         num_epochs=num_epochs)
     #torch.save(model.module.state_dict(), f'final.pt')
     return  model
