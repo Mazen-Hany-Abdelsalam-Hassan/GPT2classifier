@@ -2,26 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>GPT-2 Text Classifier</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      line-height: 1.6;
-      max-width: 900px;
-    }
-    code {
-      background-color: #f4f4f4;
-      padding: 2px 4px;
-      border-radius: 4px;
-    }
-    pre {
-      background-color: #f4f4f4;
-      padding: 15px;
-      border-radius: 5px;
-      overflow-x: auto;
-    }
-  </style>
 </head>
 <body>
 
