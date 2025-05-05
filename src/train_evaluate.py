@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 from torch.amp import autocast, GradScaler
 
 
@@ -13,7 +14,7 @@ def calc_loss_batch(predictions, targets):
 
 def train_classifier(model, train_dataloader, validation_dataloader,
                      optimizer, num_epochs, device, log_interval=100, scheduler=None,
-                     use_mixed_precision=True):
+                     use_mixed_precision=True, use_data_parallel=False):
     """
     Train a classifier model with regular batch interval logging.
 
@@ -27,6 +28,7 @@ def train_classifier(model, train_dataloader, validation_dataloader,
         log_interval: Number of batches between logging updates
         scheduler: Optional learning rate scheduler
         use_mixed_precision: Whether to use mixed precision training (FP16)
+        use_data_parallel: Whether to use DataParallel for multi-GPU training
 
     Returns:
         dict: Training history including losses and accuracies
@@ -42,7 +44,7 @@ def train_classifier(model, train_dataloader, validation_dataloader,
     device_type = 'cuda' if device.type == 'cuda' else 'cpu'
 
     # Initialize gradient scaler for mixed precision training
-    scaler = GradScaler(device_type) if use_mixed_precision else None
+    scaler = GradScaler() if use_mixed_precision and device_type == 'cuda' else None
 
     # Check if mixed precision is available/beneficial
     if use_mixed_precision and device_type != 'cuda':
@@ -52,8 +54,13 @@ def train_classifier(model, train_dataloader, validation_dataloader,
     # Move model to device
     model = model.to(device)
 
+    # Enable DataParallel if requested and if multiple GPUs are available
+    if use_data_parallel and torch.cuda.device_count() > 1:
+        print(f"Using DataParallel with {torch.cuda.device_count()} GPUs")
+        model = nn.DataParallel(model)
+
     for epoch in range(num_epochs):
-        if device == torch.device("cuda"):
+        if device.type == "cuda":
             torch.cuda.empty_cache()
         print(f"\nEpoch {epoch + 1}/{num_epochs}")
 
@@ -76,9 +83,9 @@ def train_classifier(model, train_dataloader, validation_dataloader,
             # Forward pass with mixed precision
             optimizer.zero_grad()
 
-            if use_mixed_precision:
+            if use_mixed_precision and device_type == 'cuda':
                 # Use autocast for mixed precision forward pass
-                with autocast(device_type):
+                with autocast():
                     predictions = model(x)[:, -1, :]
                     loss, num_samples = calc_loss_batch(predictions, y)
 
@@ -158,7 +165,10 @@ def train_classifier(model, train_dataloader, validation_dataloader,
 
         # Step the learning rate scheduler if provided
         if scheduler is not None:
-            scheduler.step(epoch_val_loss)
+            if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                scheduler.step(epoch_val_loss)
+            else:
+                scheduler.step()
 
         # Store metrics in history
         history['train_loss'].append(epoch_train_loss)
@@ -170,13 +180,15 @@ def train_classifier(model, train_dataloader, validation_dataloader,
         print(f"\nEpoch {epoch + 1} Summary:")
         print(f"Train loss: {epoch_train_loss:.4f}, Train accuracy: {epoch_train_accuracy:.2f}%")
         print(f"Val loss: {epoch_val_loss:.4f}, Val accuracy: {epoch_val_accuracy:.2f}%")
-        if use_mixed_precision:
+        if use_mixed_precision and device_type == 'cuda':
             print("Training with mixed precision (FP16/FP32)")
+        if use_data_parallel and torch.cuda.device_count() > 1:
+            print(f"Training with DataParallel on {torch.cuda.device_count()} GPUs")
 
     return history
 
 
-def evaluate_classifier(model, dataloader, device, use_mixed_precision=False):
+def evaluate_classifier(model, dataloader, device, use_mixed_precision=False, use_data_parallel=False):
     """
     Evaluate a classifier model on a dataset.
 
@@ -185,13 +197,21 @@ def evaluate_classifier(model, dataloader, device, use_mixed_precision=False):
         dataloader: DataLoader for evaluation data
         device: Device to use for evaluation ('cuda' or 'cpu')
         use_mixed_precision: Whether to use mixed precision for evaluation
+        use_data_parallel: Whether to use DataParallel for multi-GPU evaluation
 
     Returns:
         dict: Evaluation metrics including loss and accuracy
     """
     # Make sure model is in evaluation mode
     model.eval()
+
+    # Move model to device
     model = model.to(device)
+
+    # Enable DataParallel if requested and if multiple GPUs are available
+    if use_data_parallel and torch.cuda.device_count() > 1:
+        print(f"Using DataParallel with {torch.cuda.device_count()} GPUs for evaluation")
+        model = nn.DataParallel(model)
 
     # Get device type for autocast
     device_type = 'cuda' if device.type == 'cuda' else 'cpu'
@@ -212,7 +232,7 @@ def evaluate_classifier(model, dataloader, device, use_mixed_precision=False):
 
             # Forward pass with optional mixed precision
             if use_mixed_precision and device_type == 'cuda':
-                with autocast(device_type):
+                with autocast():
                     predictions = model(x)[:, -1, :]
                     loss_result = calc_loss_batch(predictions, y)
             else:
