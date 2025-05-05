@@ -1,4 +1,4 @@
-from data_utils import split_data, CreateDataloader
+from data_utils import split_data, CreateDataloader , ClassifierDataset
 from GPT2 import   GPTModel
 from config import *
 from GPT2Modification import ClassificationModel, LoRA_Classification_Model

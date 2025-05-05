@@ -8,7 +8,7 @@ sys.path.append('src')
 
 from src import (split_data , CreateDataloader,ClassificationModel,train_classifier_ddp,train_df_dir,
                   test_df_dir ,val_df_dir,CONFIG_DICT_DIR,DEVICE ,
-                 LoRA_Classification_Model
+                 LoRA_Classification_Model, ClassifierDataset
                  )
 
 def main(json_name):
@@ -38,22 +38,11 @@ def main(json_name):
     df = pd.read_csv(csv_dir)
     split_data(data = df , label_dict=label_dictionary,
                train_split=train_split,val_split=val_split,column_name=column_name)
-    train_loader = CreateDataloader(csv_dir = train_df_dir,
-                                    batch_size=batch_size,
-                                    column_name=column_name,
-                                    allowed_seq_length=max_seq_length
-                                    )
 
-    val_loader = CreateDataloader(csv_dir = val_df_dir,
-                                    batch_size=batch_size,
-                                    column_name=column_name,
-                                    allowed_seq_length=max_seq_length
-                                    )
-    test_loader = CreateDataloader(csv_dir = test_df_dir,
-                                    batch_size=batch_size,
-                                    column_name=column_name,
-                                    allowed_seq_length=max_seq_length)
 
+    train_dataset = ClassifierDataset(train_df_dir , max_seq_length , column_name = column_name)
+
+    val_dataset= ClassifierDataset(val_df_dir, max_seq_length, column_name=column_name)
 
     if LoRA :
         model = LoRA_Classification_Model(Model_variant=Model_variant ,
@@ -71,12 +60,9 @@ def main(json_name):
         local_rank=0,
         world_size=2,
         model=model,
-        train_dataloader=train_loader,
-        val_dataloader=val_loader,
+        train_dataset=train_dataset,
+        val_dataset=val_dataset,
         optimizer=optimizer,
-        num_epochs=num_epochs,
-        device=DEVICE
-    )
-
+        num_epochs=num_epochs)
     #torch.save(model.module.state_dict(), f'final.pt')
     return  model
