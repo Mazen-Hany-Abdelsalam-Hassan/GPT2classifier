@@ -36,10 +36,10 @@
 
   <h2>📌 Key Features</h2>
   <ul>
-    <li>✅ <strong>Custom training loop</strong> without high-level frameworks</li>
-    <li>✅ <strong>Custom GPT-2 classifier head</strong></li>
-    <li>✅ Minimal dependencies (focused on core libraries like PyTorch and Hugging Face)</li>
-    <li>✅ Clear modular design for easy extension</li>
+    <li>✅ Custom training and evaluation logic (no Trainer APIs)</li>
+    <li>✅ GPT-2 model adapted for classification tasks</li>
+    <li>✅ Modular and clean code design</li>
+    <li>✅ Easy to understand and extend for learning purposes</li>
   </ul>
 
   <h2>📁 Project Structure</h2>
@@ -49,44 +49,30 @@ GPT2classifier/
 ├── classifier_model.py      # GPT-2 classifier model definition
 ├── config.py                # Hyperparameters and settings
 ├── dataset.py               # Dataset loading and preprocessing
-├── train.py                 # Fully custom training loop
+├── train.py                 # Custom training loop logic
 ├── evaluate.py              # Manual evaluation script
 ├── utils.py                 # Helper functions
 └── requirements.txt         # Project dependencies
   </pre>
 
-  <h2>⚙️ Setup & Usage</h2>
-  <ol>
-    <li><strong>Clone the repository</strong>
-      <pre><code>git clone https://github.com/Mazen-Hany-Abdelsalam-Hassan/GPT2classifier.git
-cd GPT2classifier</code></pre>
-    </li>
-
-    <li><strong>Install dependencies</strong>
-      <pre><code>pip install -r requirements.txt</code></pre>
-    </li>
-
-    <li><strong>Train the model</strong>
-      <pre><code>python train.py</code></pre>
-    </li>
-
-    <li><strong>Evaluate the model</strong>
-      <pre><code>python evaluate.py</code></pre>
-    </li>
-  </ol>
+  <h2>📓 Usage</h2>
+  <p>
+    All training and evaluation steps are provided in dedicated Jupyter Notebooks.
+    Simply open the notebooks and follow the instructions inside to run the model.
+  </p>
 
   <h2>🧠 How It Works</h2>
   <ul>
     <li>Loads a pre-trained GPT-2 model from Hugging Face</li>
-    <li>Freezes/Unfreezes layers as needed</li>
-    <li>Adds a custom classification head on top of GPT-2 outputs</li>
-    <li>Implements the training loop manually using PyTorch</li>
+    <li>Adds a classification head on top of the transformer output</li>
+    <li>Prepares text datasets for supervised training</li>
+    <li>Implements custom loss calculation, optimizer updates, and evaluation metrics</li>
   </ul>
 
   <h2>📚 Notes</h2>
   <p>
-    This project is meant for <strong>learning and experimentation</strong> with custom model training using transformer architectures.
-    It avoids using Trainer APIs to give full visibility and control over every training step.
+    This project was developed for educational purposes and shows how transformer-based models like GPT-2
+    can be adapted beyond their original use cases. It provides a transparent and hands-on understanding of training deep learning models for classification.
   </p>
 
 </body>
