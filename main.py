@@ -6,7 +6,7 @@ import torch
 
 sys.path.append('src')
 
-from src import (split_data , CreateDataloader,ClassificationModel,train_classifier,evaluate_classifier,train_df_dir,
+from src import (split_data , CreateDataloader,ClassificationModel,train_classifier_ddp,train_df_dir,
                   test_df_dir ,val_df_dir,CONFIG_DICT_DIR,DEVICE ,
                  LoRA_Classification_Model
                  )
@@ -67,6 +67,6 @@ def main(json_name):
         print("ALL of US HATE LoRA")
         print(type(model))
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
-    train_classifier(model, train_loader, val_loader, optimizer, num_epochs,DEVICE , rank = 0 , world_size = 2)
+    train_classifier_ddp(model, train_loader, val_loader, optimizer, num_epochs,DEVICE , rank = 0 , world_size = 2)
     torch.save(model.module.state_dict(), f'final.pt')
     return  model
