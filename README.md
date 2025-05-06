@@ -62,6 +62,11 @@ GPT2classifier/
     The version of the package will not affect at all , The code is pure pytorch
     
   </p>
+<p>
+        
+    pip install -r requirements.txt
 
+
+</p>
 </body>
 </html>
