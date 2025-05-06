@@ -69,3 +69,4 @@ def main(json_name):
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
     train_classifier(model, train_loader, val_loader, optimizer, num_epochs,DEVICE)
     torch.save(model.state_dict(), "CLASSIFICATION/model.pth")
+    return model

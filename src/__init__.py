@@ -5,4 +5,4 @@ from GPT2Modification import ClassificationModel, LoRA_Classification_Model
 from train_evaluate import train_classifier , evaluate_classifier
 from create_config_file import create_json
 from lorautils import ReplaceLinear
-from inference import 
+from inference import predict
