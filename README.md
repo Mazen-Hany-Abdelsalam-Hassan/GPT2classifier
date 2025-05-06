@@ -58,6 +58,9 @@ GPT2classifier/
   <p>
     This project was developed for educational purposes and shows how transformer-based models like GPT-2
     can be adapted beyond their original use cases. It provides a transparent and hands-on understanding of training deep learning models for classification.
+    
+    The version of the package will not affect at all , The code is pure pytorch
+    
   </p>
 
 </body>
