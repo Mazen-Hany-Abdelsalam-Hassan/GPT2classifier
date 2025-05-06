@@ -1,0 +1,5 @@
+numpy==1.26.4
+pandas==2.2.3
+tiktoken==0.9.0
+torch==2.5.1+cu124
+-f https://download.pytorch.org/whl/torch_stable.html

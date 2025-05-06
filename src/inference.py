@@ -8,7 +8,9 @@ def predict(text: 'str', model, tokenizer = TOKENIZER,
     encoded_text = tokenizer.encode(text)[:Max_length]
     encoded_text.append(padding_token)
     encoded_text = tensor([encoded_text])
+    encoded_text.to(DEVICE)
     model.to(DEVICE)
+    model.eval()
     result = model(encoded_text)[:,-1,0].argmax(axis=-1 )
     inverse_label_dict = {value : key  for key , value in LABEL_DICTIONARY_IMDB.items()}
     return  inverse_label_dict[result]
